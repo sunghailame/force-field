@@ -15,7 +15,6 @@ class Theme(enum.Enum):
     space = 2
     sky = 3
 
-
 selected_theme = Theme.space;
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
@@ -47,7 +46,8 @@ def load_animation(folder):
 
 goldfish_animation = load_animation('data/GoldfishAnimation')
 raincloud_animation = load_animation('data/RainCloud')
-
+elephant_animation = load_animation('data/ElephantAnimation')
+alien_animation = load_animation('data/AlienAnimation')
 
 class Player(pygame.sprite.Sprite):
     images = []
@@ -59,12 +59,9 @@ class Player(pygame.sprite.Sprite):
         if selected_theme == Theme.ocean:
             self.anim = goldfish_animation
         elif selected_theme == Theme.sky:
-            self.surf = pygame.transform.scale(
-                load_image('elephant.png').convert_alpha(), (75, 75))
+            self.anim = elephant_animation
         elif selected_theme == Theme.space:
-            self.surf = pygame.transform.scale(
-                load_image('alien.png').convert_alpha(), (75, 75))
-
+            self.anim = alien_animation
         self.rect = pygame.Rect(0, 0, 75, 75)
 
     def update(self):
