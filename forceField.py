@@ -6,6 +6,7 @@ import os.path
 import pyganim
 import enum
 import serial
+import time
 
 from pygame.locals import *
 
@@ -97,6 +98,33 @@ class Enemy(pygame.sprite.Sprite):
             self.kill()
 
 
+class highScore(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.font = pygame.font.Font(None, 60)
+        self.color = Color('black')
+        self.lastscore = -1
+        self.update()
+        self.rect = self.surf.get_rect().move(300, 300)
+
+    def update(self):
+        if score != self.lastscore:
+            self.lastscore = score
+            sFile = os.path.join(main_dir, 'data', 'Scores.txt')
+            scores = open(sFile, 'r')
+            text=scores.readline()
+            scores.close()
+            hScore=int(text[:len(text)])
+            msg = "High Score: " + text[:(len(text))]
+            if(score>hScore):
+                scores = open(sFile, 'w')
+                scores.write(str(score))
+                msg = "High Score: " +str(score)
+
+            #msg = "High Scores: %d" % score
+            self.surf = self.font.render(msg, 0, self.color)
+
+
 class Score(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -147,6 +175,9 @@ if pygame.font:
 running = True
 
 ser.write(b'r')
+mfile = os.path.join(main_dir, 'data', 'Fantasy.mp3')
+music = pygame.mixer.music.load(mfile)
+pygame.mixer.music.play(loops=5, start=0.0)
 while running:
 
     bgdtile = load_image('cloudbg-01.png')
@@ -187,7 +218,13 @@ while running:
             screen.blit(entity.surf, entity.rect)
 
     if pygame.sprite.spritecollideany(player, enemies):
+        pygame.mixer.music.stop()
+        highScores = highScore()
+        highScores.update()
+        screen.blit(highScores.surf, highScores.rect)
+        pygame.display.flip()
         player.kill()
+        time.sleep(3)
         pygame.quit()
         exit()
     pygame.display.flip()
