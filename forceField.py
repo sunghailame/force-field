@@ -3,6 +3,7 @@
 import pygame
 import random
 import os.path
+import serial
 
 from pygame.locals import *
 
@@ -12,13 +13,21 @@ spritex = 50
 spritey = 450
 score = 0
 
+ser = serial.Serial('COM6')
+
+
+def maprange(a, b, s):
+    (a1, a2), (b1, b2) = a, b
+    return b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
+
 
 class Player(pygame.sprite.Sprite):
     images = []
+
     def __init__(self):
         super(Player, self).__init__()
         self.surf = pygame.Surface((75, 75))
-        #self.surf.fill((255, 255, 255))
+        # self.surf.fill((255, 255, 255))
         self.rect = self.surf.get_rect()
         self.image = load_image('elephant.png')
 
@@ -44,12 +53,12 @@ class Enemy(pygame.sprite.Sprite):
 class Score(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        self.font = pygame.font.Font(None, 20)
+        self.font = pygame.font.Font(None, 30)
         self.font.set_italic(1)
         self.color = Color('black')
         self.lastscore = -1
         self.update()
-        self.rect = self.surf.get_rect().move(10, 450)
+        self.rect = self.surf.get_rect().move(10, 575)
 
     def update(self):
         if score != self.lastscore:
@@ -64,7 +73,7 @@ def load_image(file):
     try:
         surface = pygame.image.load(file)
     except pygame.error:
-        raise SystemExit('Could not load image "%s" %s'%(file, pygame.get_error()))
+        raise SystemExit('Could not load image "%s" %s' % (file, pygame.get_error()))
     return surface.convert()
 
 
@@ -92,7 +101,7 @@ if pygame.font:
     all_sprites.add(Score())
 
 running = True
-
+ser.write(b'r')
 while running:
 
     bgdtile = load_image('cloudbg-01.png')
@@ -112,9 +121,10 @@ while running:
         elif event.type == QUIT:
             running = False
         elif event.type == ADDENEMY:
-            new_enemy = Enemy()
-            enemies.add(new_enemy)
-            all_sprites.add(new_enemy)
+            if random.random() < .30:
+                new_enemy = Enemy()
+                enemies.add(new_enemy)
+                all_sprites.add(new_enemy)
 
     pressed_keys = pygame.key.get_pressed()
     all_sprites.update()
@@ -126,17 +136,30 @@ while running:
         player.kill()
         pygame.quit()
         exit()
-
-    if pressed_keys[pygame.K_UP]:
-        spritey -= 5
-        if spritey <= 0:
-            spritey = 0
-    elif pressed_keys[pygame.K_DOWN]:
-        spritey += 5
-        if spritey >= 475:
-            spritey = 475
-
     pygame.display.flip()
     pygame.display.update()
 
+    min_ir_val = 515
+    max_ir_val = 590
 
+    irvalue = int(ser.readline().decode('ascii'))
+    if irvalue > max_ir_val:
+        irvalue = max_ir_val
+    if irvalue < min_ir_val:
+        irvalue = min_ir_val
+
+    target = maprange((min_ir_val, max_ir_val), (0, 475), irvalue)
+
+    spritey = (target - spritey) * .15 + spritey
+    ser.write(b'g')
+
+
+
+    # if pressed_keys[pygame.K_UP]:
+    #     spritey -= 5
+    #     if spritey <= 0:
+    #         spritey = 0
+    # elif pressed_keys[pygame.K_DOWN]:
+    #     spritey += 5
+    #     if spritey >= 475:
+    #         spritey = 475
