@@ -4,9 +4,17 @@ import pygame
 import random
 import os.path
 import pyganim
+import enum
 # import serial
 
 from pygame.locals import *
+
+class Theme(enum.Enum):
+    ocean = 1
+    space = 2
+    sky = 3
+
+selected_theme = Theme.space;
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
@@ -45,7 +53,15 @@ class Player(pygame.sprite.Sprite):
         super(Player, self).__init__()
         # self.surf = pygame.Surface((75, 75))
         # self.surf.fill((255, 255, 255))
-        self.anim = goldfish_animation
+        if selected_theme == Theme.ocean:
+            self.anim = goldfish_animation
+        elif selected_theme == Theme.sky:
+            self.surf = pygame.transform.scale(
+                load_image('elephant.png').convert_alpha(), (75, 75))
+        elif selected_theme == Theme.space:
+            self.surf = pygame.transform.scale(
+                load_image('alien.png').convert_alpha(), (75, 75))
+
         self.rect = pygame.Rect(0, 0, 75, 75)
 
     def update(self):
@@ -57,11 +73,20 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
         self.surf = pygame.transform.scale(
-            load_image('ocean-enemy.png').convert_alpha(), (75, 75))
+                load_image('ocean-enemy.png').convert_alpha(), (75, 75))
+
+        if selected_theme == Theme.sky:
+            self.anim = raincloud_animation
+        elif selected_theme == Theme.ocean:
+            self.surf = pygame.transform.scale(
+                load_image('ocean-enemy.png').convert_alpha(), (75, 75))
+        elif selected_theme == Theme.space:
+            self.surf = pygame.transform.scale(
+                load_image('space-enemy.png').convert_alpha(), (75, 75))
+
         self.rect = self.surf.get_rect(
             center=(random.randint(820, 900), random.randint(0, 475)))
         self.speed = random.randint(1, 4)
-        self.anim = raincloud_animation
 
     def update(self):
         self.rect.move_ip(-self.speed, 0)
@@ -122,6 +147,13 @@ running = True
 while running:
 
     bgdtile = load_image('cloudbg-01.png')
+    if selected_theme == Theme.ocean:
+        bgdtile = load_image('oceanbg.png')
+    if selected_theme == Theme.sky:
+        bgdtile = load_image('cloudbg-01.png')
+    if selected_theme == Theme.space:
+        bgdtile = load_image('spacebg.png')
+
     background = pygame.Surface(screen.get_size())
     for x in range(0, 800, bgdtile.get_width()):
         background.blit(bgdtile, (x, 0))
