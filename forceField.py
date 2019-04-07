@@ -5,14 +5,16 @@ import random
 import os.path
 import pyganim
 import enum
-# import serial
+import serial
 
 from pygame.locals import *
+
 
 class Theme(enum.Enum):
     ocean = 1
     space = 2
     sky = 3
+
 
 selected_theme = Theme.space;
 
@@ -25,7 +27,8 @@ pygame.init()
 
 screen = pygame.display.set_mode((800, 600))
 
-#ser = serial.Serial('COM6')
+
+ser = serial.Serial('COM9')
 
 
 def maprange(a, b, s):
@@ -73,7 +76,7 @@ class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
         self.surf = pygame.transform.scale(
-                load_image('ocean-enemy.png').convert_alpha(), (75, 75))
+            load_image('ocean-enemy.png').convert_alpha(), (75, 75))
 
         if selected_theme == Theme.sky:
             self.anim = raincloud_animation
@@ -143,7 +146,7 @@ if pygame.font:
 
 running = True
 
-#ser.write(b'r')
+ser.write(b'r')
 while running:
 
     bgdtile = load_image('cloudbg-01.png')
@@ -159,7 +162,7 @@ while running:
         background.blit(bgdtile, (x, 0))
     screen.blit(background, (0, 0))
 
-    #screen.blit(player.surf, player.rect)
+    # screen.blit(player.surf, player.rect)
 
     score += 1
     for event in pygame.event.get():
@@ -189,16 +192,16 @@ while running:
         exit()
     pygame.display.flip()
 
-    min_ir_val = 515
-    max_ir_val = 590
+    min_ir_val = 300
+    max_ir_val = 470
 
-#    irvalue = int(ser.readline().decode('ascii'))
-#    if irvalue > max_ir_val:
-#        irvalue = max_ir_val
-#    if irvalue < min_ir_val:
-#        irvalue = min_ir_val
-#
-#    target = maprange((min_ir_val, max_ir_val), (0, 475), irvalue)
+    irvalue = int(ser.readline().decode('ascii'))
+    if irvalue > max_ir_val:
+        irvalue = max_ir_val
+    if irvalue < min_ir_val:
+        irvalue = min_ir_val
 
-#    spritey = (target - spritey) * .15 + spritey
-#    ser.write(b'g')
+    target = maprange((min_ir_val, max_ir_val), (475, 0), irvalue)
+
+    spritey = (target - spritey) * .15 + spritey
+    ser.write(b'g')
