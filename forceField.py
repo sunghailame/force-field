@@ -14,24 +14,17 @@ score = 0
 
 
 class Player(pygame.sprite.Sprite):
-
+    images = []
     def __init__(self):
         super(Player, self).__init__()
         self.surf = pygame.Surface((75, 75))
-        self.surf.fill((255, 255, 255))
+        #self.surf.fill((255, 255, 255))
         self.rect = self.surf.get_rect()
+        self.image = load_image('elephant.png')
 
     def update(self):
         self.rect.left = spritex
         self.rect.top = spritey
-        if self.rect.left < 0:
-            self.rect.left = 0
-        elif self.rect.right > 800:
-            self.rect.right = 800
-        if self.rect.top <= 0:
-            self.rect.top = 0
-        elif self.rect.bottom >= 600:
-            self.rect.bottom = 600
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -53,16 +46,16 @@ class Score(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.font = pygame.font.Font(None, 20)
         self.font.set_italic(1)
-        self.color = Color('white')
+        self.color = Color('black')
         self.lastscore = -1
         self.update()
-        self.rect = self.image.get_rect().move(10, 450)
+        self.rect = self.surf.get_rect().move(10, 450)
 
     def update(self):
         if score != self.lastscore:
             self.lastscore = score
             msg = "Score: %d" % score
-            self.image = self.font.render(msg, 0, self.color)
+            self.surf = self.font.render(msg, 0, self.color)
 
 
 def load_image(file):
@@ -84,25 +77,24 @@ def load_images(*files):
 
 pygame.init()
 
-score = pygame.time.get_ticks()
 screen = pygame.display.set_mode((800, 600))
 
 ADDENEMY = pygame.USEREVENT + 1
-pygame.time.set_timer(ADDENEMY, 700)
+pygame.time.set_timer(ADDENEMY, 1000)
 
 player = Player()
-
-# background = pygame.Surface(screen.get_size())
 
 enemies = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
 
+if pygame.font:
+    all_sprites.add(Score())
+
 running = True
 
 while running:
-    if pygame.font:
-        Score()
+
     bgdtile = load_image('cloudbg-01.png')
     background = pygame.Surface(screen.get_size())
     for x in range(0, 800, bgdtile.get_width()):
@@ -111,6 +103,8 @@ while running:
     pygame.display.flip()
 
     screen.blit(player.surf, (spritex, spritey))
+
+    score += 1
     for event in pygame.event.get():
         if event.type == KEYDOWN:
             if event.key == K_q:
@@ -123,8 +117,7 @@ while running:
             all_sprites.add(new_enemy)
 
     pressed_keys = pygame.key.get_pressed()
-    player.update()
-    enemies.update()
+    all_sprites.update()
 
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
