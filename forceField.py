@@ -3,7 +3,8 @@
 import pygame
 import random
 import os.path
-import serial
+import pyganim
+# import serial
 
 from pygame.locals import *
 
@@ -12,13 +13,29 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 spritex = 50
 spritey = 450
 score = 0
+pygame.init()
 
-ser = serial.Serial('COM6')
+screen = pygame.display.set_mode((800, 600))
+
+#ser = serial.Serial('COM6')
 
 
 def maprange(a, b, s):
     (a1, a2), (b1, b2) = a, b
     return b1 + ((s - a1) * (b2 - b1) / (a2 - a1))
+
+
+def load_animation(folder):
+    animation = pyganim.PygAnimation(
+        [(folder + "/{0:0=3d}.png".format(x), 17) for x in range(1, 300)])
+    animation.set_colorkey((0, 0, 0))
+    animation.smoothscale((75, 75))
+    animation.play()
+    return animation
+
+
+goldfish_animation = load_animation('data/GoldfishAnimation')
+raincloud_animation = load_animation('data/RainCloud')
 
 
 class Player(pygame.sprite.Sprite):
@@ -28,8 +45,8 @@ class Player(pygame.sprite.Sprite):
         super(Player, self).__init__()
         # self.surf = pygame.Surface((75, 75))
         # self.surf.fill((255, 255, 255))
-        self.surf = pygame.transform.scale(load_image('goldfish.png').convert_alpha(), (75, 75))
-        self.rect = self.surf.get_rect(width=75, height=75)
+        self.anim = goldfish_animation
+        self.rect = pygame.Rect(0, 0, 75, 75)
 
     def update(self):
         self.rect.left = spritex
@@ -39,10 +56,12 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
-        self.surf = pygame.Surface((75, 75))
-        self.surf.fill((255, 255, 255))
-        self.rect = self.surf.get_rect(center=(random.randint(820, 900), random.randint(0, 475)))
+        self.surf = pygame.transform.scale(
+            load_image('ocean-enemy.png').convert_alpha(), (75, 75))
+        self.rect = self.surf.get_rect(
+            center=(random.randint(820, 900), random.randint(0, 475)))
         self.speed = random.randint(1, 4)
+        self.anim = raincloud_animation
 
     def update(self):
         self.rect.move_ip(-self.speed, 0)
@@ -73,8 +92,9 @@ def load_image(file):
     try:
         surface = pygame.image.load(file)
     except pygame.error:
-        raise SystemExit('Could not load image "%s" %s' % (file, pygame.get_error()))
-    return surface.convert()
+        raise SystemExit(
+            'Could not load image "%s" %s' % (file, pygame.get_error()))
+    return surface.convert_alpha()
 
 
 def load_images(*files):
@@ -83,10 +103,6 @@ def load_images(*files):
         imgs.append(load_image(file).convert_alpha())
     return imgs
 
-
-pygame.init()
-
-screen = pygame.display.set_mode((800, 600))
 
 ADDENEMY = pygame.USEREVENT + 1
 pygame.time.set_timer(ADDENEMY, 1000)
@@ -101,7 +117,8 @@ if pygame.font:
     all_sprites.add(Score())
 
 running = True
-ser.write(b'r')
+
+#ser.write(b'r')
 while running:
 
     bgdtile = load_image('cloudbg-01.png')
@@ -109,7 +126,6 @@ while running:
     for x in range(0, 800, bgdtile.get_width()):
         background.blit(bgdtile, (x, 0))
     screen.blit(background, (0, 0))
-    pygame.display.flip()
 
     #screen.blit(player.surf, player.rect)
 
@@ -130,34 +146,27 @@ while running:
     all_sprites.update()
 
     for entity in all_sprites:
-        screen.blit(entity.surf, entity.rect)
+        if (hasattr(entity, 'anim')):
+            entity.anim.blit(screen, entity.rect)
+        else:
+            screen.blit(entity.surf, entity.rect)
 
     if pygame.sprite.spritecollideany(player, enemies):
         player.kill()
         pygame.quit()
         exit()
     pygame.display.flip()
-    pygame.display.update()
 
     min_ir_val = 515
     max_ir_val = 590
 
-    irvalue = int(ser.readline().decode('ascii'))
-    if irvalue > max_ir_val:
-        irvalue = max_ir_val
-    if irvalue < min_ir_val:
-        irvalue = min_ir_val
+#    irvalue = int(ser.readline().decode('ascii'))
+#    if irvalue > max_ir_val:
+#        irvalue = max_ir_val
+#    if irvalue < min_ir_val:
+#        irvalue = min_ir_val
+#
+#    target = maprange((min_ir_val, max_ir_val), (0, 475), irvalue)
 
-    target = maprange((min_ir_val, max_ir_val), (0, 475), irvalue)
-
-    spritey = (target - spritey) * .15 + spritey
-    ser.write(b'g')
-
-    # if pressed_keys[pygame.K_UP]:
-    #     spritey -= 5
-    #     if spritey <= 0:
-    #         spritey = 0
-    # elif pressed_keys[pygame.K_DOWN]:
-    #     spritey += 5
-    #     if spritey >= 475:
-    #         spritey = 475
+#    spritey = (target - spritey) * .15 + spritey
+#    ser.write(b'g')
