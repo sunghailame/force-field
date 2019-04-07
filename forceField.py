@@ -16,7 +16,7 @@ class Theme(enum.Enum):
     space = 2
     sky = 3
 
-selected_theme = Theme.space;
+selected_theme = Theme.ocean;
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
@@ -43,7 +43,6 @@ def load_animation(folder):
     animation.smoothscale((75, 75))
     animation.play()
     return animation
-
 
 goldfish_animation = load_animation('data/GoldfishAnimation')
 raincloud_animation = load_animation('data/RainCloud')
