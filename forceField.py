@@ -10,13 +10,14 @@ main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 spritex = 50
 spritey = 450
+score = 0
 
 
 class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.Surface((50, 50))
+        self.surf = pygame.Surface((75, 75))
         self.surf.fill((255, 255, 255))
         self.rect = self.surf.get_rect()
 
@@ -36,7 +37,7 @@ class Player(pygame.sprite.Sprite):
 class Enemy(pygame.sprite.Sprite):
     def __init__(self):
         super(Enemy, self).__init__()
-        self.surf = pygame.Surface((50, 50))
+        self.surf = pygame.Surface((75, 75))
         self.surf.fill((255, 255, 255))
         self.rect = self.surf.get_rect(center=(random.randint(820, 900), random.randint(0, 475)))
         self.speed = random.randint(1, 4)
@@ -45,6 +46,23 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.move_ip(-self.speed, 0)
         if self.rect.right < 0:
             self.kill()
+
+
+class Score(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.font = pygame.font.Font(None, 20)
+        self.font.set_italic(1)
+        self.color = Color('white')
+        self.lastscore = -1
+        self.update()
+        self.rect = self.image.get_rect().move(10, 450)
+
+    def update(self):
+        if score != self.lastscore:
+            self.lastscore = score
+            msg = "Score: %d" % score
+            self.image = self.font.render(msg, 0, self.color)
 
 
 def load_image(file):
@@ -66,6 +84,7 @@ def load_images(*files):
 
 pygame.init()
 
+score = pygame.time.get_ticks()
 screen = pygame.display.set_mode((800, 600))
 
 ADDENEMY = pygame.USEREVENT + 1
@@ -82,6 +101,8 @@ all_sprites.add(player)
 running = True
 
 while running:
+    if pygame.font:
+        Score()
     bgdtile = load_image('cloudbg-01.png')
     background = pygame.Surface(screen.get_size())
     for x in range(0, 800, bgdtile.get_width()):
