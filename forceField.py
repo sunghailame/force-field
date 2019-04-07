@@ -8,6 +8,9 @@ from pygame.locals import *
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
+spritex = 50
+spritey = 450
+
 
 class Player(pygame.sprite.Sprite):
 
@@ -18,6 +21,8 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.surf.get_rect()
 
     def update(self):
+        self.rect.left = spritex
+        self.rect.top = spritey
         if self.rect.left < 0:
             self.rect.left = 0
         elif self.rect.right > 800:
@@ -61,8 +66,6 @@ def load_images(*files):
 
 pygame.init()
 
-spritex = 50
-spritey = 450
 screen = pygame.display.set_mode((800, 600))
 
 ADDENEMY = pygame.USEREVENT + 1
@@ -105,8 +108,10 @@ while running:
     for entity in all_sprites:
         screen.blit(entity.surf, entity.rect)
 
-        if pygame.sprite.spritecollideany(player, enemies):
-            player.kill()
+    if pygame.sprite.spritecollideany(player, enemies):
+        player.kill()
+        pygame.quit()
+        exit()
 
     if pressed_keys[pygame.K_UP]:
         spritey -= 5
