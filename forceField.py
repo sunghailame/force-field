@@ -26,10 +26,10 @@ class Player(pygame.sprite.Sprite):
 
     def __init__(self):
         super(Player, self).__init__()
-        self.surf = pygame.Surface((75, 75))
+        # self.surf = pygame.Surface((75, 75))
         # self.surf.fill((255, 255, 255))
-        self.rect = self.surf.get_rect()
-        self.image = load_image('elephant.png')
+        self.surf = pygame.transform.scale(load_image('goldfish.png').convert_alpha(), (75, 75))
+        self.rect = self.surf.get_rect(width=75, height=75)
 
     def update(self):
         self.rect.left = spritex
@@ -80,7 +80,7 @@ def load_image(file):
 def load_images(*files):
     imgs = []
     for file in files:
-        imgs.append(load_image(file))
+        imgs.append(load_image(file).convert_alpha())
     return imgs
 
 
@@ -111,7 +111,7 @@ while running:
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
-    screen.blit(player.surf, (spritex, spritey))
+    #screen.blit(player.surf, player.rect)
 
     score += 1
     for event in pygame.event.get():
@@ -121,7 +121,7 @@ while running:
         elif event.type == QUIT:
             running = False
         elif event.type == ADDENEMY:
-            if random.random() < .30:
+            if random.random() < .45:
                 new_enemy = Enemy()
                 enemies.add(new_enemy)
                 all_sprites.add(new_enemy)
@@ -152,8 +152,6 @@ while running:
 
     spritey = (target - spritey) * .15 + spritey
     ser.write(b'g')
-
-
 
     # if pressed_keys[pygame.K_UP]:
     #     spritey -= 5
