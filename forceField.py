@@ -7,6 +7,8 @@ import pyganim
 import enum
 import serial
 import time
+import pygameMenu  # This imports classes and other things
+from pygameMenu.locals import *
 
 from pygame.locals import *
 
@@ -16,7 +18,7 @@ class Theme(enum.Enum):
     space = 2
     sky = 3
 
-selected_theme = Theme.ocean;
+selected_theme = Theme.ocean
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
@@ -28,7 +30,7 @@ pygame.init()
 screen = pygame.display.set_mode((800, 600))
 
 
-ser = serial.Serial('COM9')
+ser = serial.Serial('COM3')
 
 
 def maprange(a, b, s):
@@ -65,6 +67,12 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.Rect(0, 0, 75, 75)
 
     def update(self):
+        if selected_theme == Theme.ocean:
+            self.anim = goldfish_animation
+        elif selected_theme == Theme.sky:
+            self.anim = elephant_animation
+        elif selected_theme == Theme.space:
+            self.anim = alien_animation
         self.rect.left = spritex
         self.rect.top = spritey
 
@@ -174,14 +182,53 @@ ser.write(b'r')
 mfile = os.path.join(main_dir, 'data', 'Fantasy.mp3')
 music = pygame.mixer.music.load(mfile)
 pygame.mixer.music.play(loops=5, start=0.0)
-while running:
 
+
+
+menu = True
+while menu:
+    bgdtile = load_image('bg2.png')
+
+    background = pygame.Surface(screen.get_size())
+
+    for x in range(0, 800, bgdtile.get_width()):
+        background.blit(bgdtile, (x, 0))
+    screen.blit(background, (0, 0))
+    pygame.display.flip()
+
+
+    for event in pygame.event.get():
+        print(event)
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+    pressed_keys = pygame.key.get_pressed()
+    keystate = pygame.key.get_pressed()
+    if keystate[K_RIGHT]:
+        selected_theme= Theme.sky
+        menu=False
+    if keystate[K_DOWN]:
+        selected_theme= Theme.space
+        menu=False
+    if keystate[K_LEFT]:
+        selected_theme= Theme.ocean
+        menu=False
+
+
+
+
+
+
+while running:
     bgdtile = load_image('cloudbg-01.png')
     if selected_theme == Theme.ocean:
         bgdtile = load_image('oceanbg.png')
+        menu=False
     if selected_theme == Theme.sky:
         bgdtile = load_image('cloudbg-01.png')
+        menu=False
     if selected_theme == Theme.space:
+        menu=False
         bgdtile = load_image('spacebg.png')
 
     background = pygame.Surface(screen.get_size())
@@ -189,7 +236,7 @@ while running:
         background.blit(bgdtile, (x, 0))
     screen.blit(background, (0, 0))
 
-    # screen.blit(player.surf, player.rect)
+
 
     score += 1
     for event in pygame.event.get():
@@ -224,10 +271,13 @@ while running:
         pygame.quit()
         exit()
     pygame.display.flip()
+    #keystate = pygame.key.get_pressed()
+    min_ir_val = 537
+    max_ir_val = 635
+    #irvalue=-min_ir_val*keystate[K_d]
 
-    min_ir_val = 300
-    max_ir_val = 470
-
+    #irvalue=irvalue+max_ir_val*keystate[K_a]
+    irvalue=0
     irvalue = int(ser.readline().decode('ascii'))
     if irvalue > max_ir_val:
         irvalue = max_ir_val
